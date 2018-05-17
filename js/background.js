@@ -8,6 +8,7 @@ function log(msg) {
 }
 log.enabled = false;
 
+var storageArea='local';
 //Redirects partitioned by request type, so we have to run through
 //the minimum number of redirects for each request.
 var partitionedRedirects = {};
@@ -171,7 +172,7 @@ function setUpRedirectListener() {
 
 	chrome.webRequest.onBeforeRequest.removeListener(checkRedirects); //Unsubscribe first, in case there are changes...
 
-	chrome.storage.local.get({redirects:[]}, function(obj) {
+	chrome.storage.storageArea.get({redirects:[]}, function(obj) {
 		var redirects = obj.redirects;
 		if (redirects.length == 0) {
 			log('No redirects defined, not setting up listener');
@@ -187,7 +188,7 @@ function setUpRedirectListener() {
 }
 
 function updateIcon() {
-	chrome.storage.local.get({disabled:false}, function(obj) {
+	chrome.storage.storageArea.get({disabled:false}, function(obj) {
 		setIcon(obj.disabled ? 'icon-disabled' : 'icon-active');
 	});	
 }
@@ -201,7 +202,7 @@ chrome.runtime.onMessage.addListener(
 		log('Received background message: ' + JSON.stringify(request));
 		if (request.type == 'getredirects') {
 			log('Getting redirects from storage');
-			chrome.storage.local.get({redirects:[]}, function(obj) {
+			chrome.storage.storageArea.get({redirects:[]}, function(obj) {
 				log('Got redirects from storage: ' + JSON.stringify(obj));
 				sendResponse(obj);
 				log('Sent redirects to content page');
@@ -209,7 +210,7 @@ chrome.runtime.onMessage.addListener(
 		} else if (request.type == 'saveredirects') {
 			console.log('Saving redirects, count=' + request.redirects.length);
 			delete request.type;
-			chrome.storage.local.set(request, function(a) {
+			chrome.storage.storageArea.set(request, function(a) {
 				log('Finished saving redirects to storage');
 				sendResponse({message:"Redirects saved"});
 			});
@@ -219,31 +220,37 @@ chrome.runtime.onMessage.addListener(
 			// Setting for Sync enabled or not, resides in Local.
 			chrome.storage.local.set({isSyncEnabled: request.isSyncEnabled},
 			    function(){
-				if(request.isSyncEnabled){
+				if(request.isSyncEnabled==true){
 					storageArea='sync';
 					chrome.storage.local.get({redirects:[]}, function(obj) {
 					   chrome.storage.sync.set(obj, function(a) {
 						log('redirects moved from Local to Sync Storage Area');
 						//Remove Redirects from Local storage
-						chrome.storage.local.remove("redirects");
+						chrome.storage.local.remove(redirects);
+						// Call setupRedirectListener to setup the redirects 
+						setUpRedirectListener();
 						sendResponse({message:"syncEnabled"});
-					  });	
+					  });	 
 					});
-				}
+				} 
 				else{
 					storageArea='local';
 					chrome.storage.sync.get({redirects:[]}, function(obj) {
 					   chrome.storage.local.set(obj, function(a) {
 						log('redirects moved from Sync to Local Storage Area');
 						//Remove Redirects from sync storage
-						chrome.storage.sync.remove("redirects");
+						chrome.storage.sync.remove(redirects);
+						// Call setupRedirectListener to setup the redirects 
+						setUpRedirectListener(); 
 						sendResponse({message:"syncDisabled"});
 					  });	
 					});
 				}
 			});
 				
-			}  else {
+			}  
+			    
+		 else {
 			log('Unexpected message: ' + JSON.stringify(request));
 			return false;
 		}
@@ -258,18 +265,27 @@ chrome.runtime.onMessage.addListener(
 updateIcon();
 
 function updateLogging() {
-    chrome.storage.local.get({logging:false}, function(obj) {
+    chrome.storage.storageArea.get({logging:false}, function(obj) {
         log.enabled = obj.logging;
     });
 }
 updateLogging();
 
-chrome.storage.local.get({disabled:false}, function(obj) {
+chrome.storage.local.get({isSyncEnabled:false},function(obj){
+	storageArea=obj.isSyncEnabled;	
+	setupInitial();
+});
+
+//wrapped the below inside a function so that we can call this once we know the value of storageArea from above. 
+
+function setupInitial(){
+chrome.storage.storageArea.get({disabled:false}, function(obj) {
 	if (!obj.disabled) {
 		setUpRedirectListener();
 	} else {
 		log('Redirector is disabled');
 	}
 });
+}
 log('Redirector starting up...');
        
