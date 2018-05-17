@@ -226,7 +226,7 @@ chrome.runtime.onMessage.addListener(
 					   chrome.storage.sync.set(obj, function(a) {
 						log('redirects moved from Local to Sync Storage Area');
 						//Remove Redirects from Local storage
-						chrome.storage.local.remove(redirects);
+						chrome.storage.local.remove("redirects");
 						// Call setupRedirectListener to setup the redirects 
 						setUpRedirectListener();
 						sendResponse({message:"syncEnabled"});
@@ -239,7 +239,7 @@ chrome.runtime.onMessage.addListener(
 					   chrome.storage.local.set(obj, function(a) {
 						log('redirects moved from Sync to Local Storage Area');
 						//Remove Redirects from sync storage
-						chrome.storage.sync.remove(redirects);
+						chrome.storage.sync.remove("redirects");
 						// Call setupRedirectListener to setup the redirects 
 						setUpRedirectListener(); 
 						sendResponse({message:"syncDisabled"});
