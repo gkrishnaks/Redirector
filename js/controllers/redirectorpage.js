@@ -22,6 +22,22 @@ redirectorApp.controller('RedirectorPageCtrl', ['$scope', '$timeout', function($
 			console.log('Saved ' + arr.length + ' redirects at ' + new Date() + '. Message from background page:' + response.message);
 		});
 	}
+	
+	// Default is LOCAL storage, allow user to select toggle to Sync if they wish 
+	$s.isSyncEnabled = false;
+	$s.toggleSyncSetting = function(){
+		chrome.runtime.sendMessage({type:"ToggleSync", isSyncEnabled: $s.isSyncEnabled}, function(response) {
+			if(response.message === "syncEnabled"){
+				$s.isSyncEnabled = true;
+				$s.showMessage('Sync is enabled','success');
+			} else {
+				$s.isSyncEnabled=false;
+				$s.showMessage('An error occured while enabling sync, local storage will be used','error');
+			}
+			$s.$apply();
+		});
+	}
+	
  
  	$s.redirects = [];
 	
