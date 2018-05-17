@@ -262,14 +262,12 @@ chrome.runtime.onMessage.addListener(
 
 
 //First time setup
-updateIcon();
 
 function updateLogging() {
     chrome.storage.storageArea.get({logging:false}, function(obj) {
         log.enabled = obj.logging;
     });
 }
-updateLogging();
 
 chrome.storage.local.get({isSyncEnabled:false},function(obj){
 	if(obj.isSyncEnabled){
@@ -283,6 +281,10 @@ chrome.storage.local.get({isSyncEnabled:false},function(obj){
 //wrapped the below inside a function so that we can call this once we know the value of storageArea from above. 
 
 function setupInitial(){
+	// moved updateLogging and updateIcon to here as we need to wait for storageArea value (sync or local)
+	updateLogging();
+	updateIcon();
+
 chrome.storage.storageArea.get({disabled:false}, function(obj) {
 	if (!obj.disabled) {
 		setUpRedirectListener();
