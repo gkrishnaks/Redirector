@@ -25,8 +25,14 @@ redirectorApp.controller('RedirectorPageCtrl', ['$scope', '$timeout', function($
 	
 	// Default is LOCAL storage, allow user to select toggle to Sync if they wish 
 	$s.isSyncEnabled = false;
+	
+	chrome.storage.local.get({isSyncEnabled:false},function(obj){
+		$s.isSyncEnabled = obj.isSyncEnabled;
+		$s.$apply();		
+	});
+	
 	$s.toggleSyncSetting = function(){
-		chrome.runtime.sendMessage({type:"ToggleSync", isSyncEnabled: $s.isSyncEnabled}, function(response) {
+		chrome.runtime.sendMessage({type:"ToggleSync", isSyncEnabled: !$s.isSyncEnabled}, function(response) {
 			if(response.message === "syncEnabled"){
 				$s.isSyncEnabled = true;
 				$s.showMessage('Sync is enabled','success');
