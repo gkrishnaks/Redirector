@@ -35,10 +35,10 @@ redirectorApp.controller('RedirectorPageCtrl', ['$scope', '$timeout', function($
 		chrome.runtime.sendMessage({type:"ToggleSync", isSyncEnabled: !$s.isSyncEnabled}, function(response) {
 			if(response.message === "syncEnabled"){
 				$s.isSyncEnabled = true;
-				$s.showMessage('Sync is enabled','success');
+				$s.showMessage('Sync is enabled!','success');
 			} else {
 				$s.isSyncEnabled=false;
-				$s.showMessage('An error occured while enabling sync, local storage will be used','error');
+				$s.showMessage('Sync is disabled - local storage will be used!','success');
 			}
 			$s.$apply();
 		});
