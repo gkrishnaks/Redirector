@@ -223,19 +223,22 @@ chrome.runtime.onMessage.addListener(
 				if(request.isSyncEnabled==true){
 					storageArea=chrome.storage.sync;
 					chrome.storage.local.get({redirects:[]}, function(obj) {
-					   chrome.storage.sync.set(obj, function(a) {
+					if(obj.length > 0){	
+		      			        chrome.storage.sync.set(obj, function(a) {
 						log('redirects moved from Local to Sync Storage Area');
 						//Remove Redirects from Local storage
 						chrome.storage.local.remove("redirects");
 						// Call setupRedirectListener to setup the redirects 
 						setUpRedirectListener();
 						sendResponse({message:"syncEnabled"});
-					  });	 
+					  });	
+					}
 					});
 				} 
 				else{
 					storageArea=chrome.storage.local;
 					chrome.storage.sync.get({redirects:[]}, function(obj) {
+					if(obj.length > 0){	
 					   chrome.storage.local.set(obj, function(a) {
 						log('redirects moved from Sync to Local Storage Area');
 						//Remove Redirects from sync storage
@@ -243,7 +246,8 @@ chrome.runtime.onMessage.addListener(
 						// Call setupRedirectListener to setup the redirects 
 						setUpRedirectListener(); 
 						sendResponse({message:"syncDisabled"});
-					  });	
+					  });
+					}
 					});
 				}
 			});
