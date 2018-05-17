@@ -188,7 +188,7 @@ function setUpRedirectListener() {
 }
 
 function updateIcon() {
-	storageArea.get({disabled:false}, function(obj) {
+	chrome.storage.local.get({disabled:false}, function(obj) {
 		setIcon(obj.disabled ? 'icon-disabled' : 'icon-active');
 	});	
 }
@@ -268,7 +268,7 @@ chrome.runtime.onMessage.addListener(
 //First time setup
 
 function updateLogging() {
-    storageArea.get({logging:false}, function(obj) {
+    chrome.storage.local.get({logging:false}, function(obj) {
         log.enabled = obj.logging;
     });
 }
