@@ -8,7 +8,7 @@ function log(msg) {
 }
 log.enabled = false;
 
-var storageArea='local';
+var storageArea='chrome.storage.local';
 //Redirects partitioned by request type, so we have to run through
 //the minimum number of redirects for each request.
 var partitionedRedirects = {};
@@ -172,7 +172,7 @@ function setUpRedirectListener() {
 
 	chrome.webRequest.onBeforeRequest.removeListener(checkRedirects); //Unsubscribe first, in case there are changes...
 
-	chrome.storage.storageArea.get({redirects:[]}, function(obj) {
+	storageArea.get({redirects:[]}, function(obj) {
 		var redirects = obj.redirects;
 		if (redirects.length == 0) {
 			log('No redirects defined, not setting up listener');
@@ -188,7 +188,7 @@ function setUpRedirectListener() {
 }
 
 function updateIcon() {
-	chrome.storage.storageArea.get({disabled:false}, function(obj) {
+	storageArea.get({disabled:false}, function(obj) {
 		setIcon(obj.disabled ? 'icon-disabled' : 'icon-active');
 	});	
 }
@@ -202,7 +202,7 @@ chrome.runtime.onMessage.addListener(
 		log('Received background message: ' + JSON.stringify(request));
 		if (request.type == 'getredirects') {
 			log('Getting redirects from storage');
-			chrome.storage.storageArea.get({redirects:[]}, function(obj) {
+			storageArea.get({redirects:[]}, function(obj) {
 				log('Got redirects from storage: ' + JSON.stringify(obj));
 				sendResponse(obj);
 				log('Sent redirects to content page');
@@ -210,7 +210,7 @@ chrome.runtime.onMessage.addListener(
 		} else if (request.type == 'saveredirects') {
 			console.log('Saving redirects, count=' + request.redirects.length);
 			delete request.type;
-			chrome.storage.storageArea.set(request, function(a) {
+			storageArea.set(request, function(a) {
 				log('Finished saving redirects to storage');
 				sendResponse({message:"Redirects saved"});
 			});
@@ -221,7 +221,7 @@ chrome.runtime.onMessage.addListener(
 			chrome.storage.local.set({isSyncEnabled: request.isSyncEnabled},
 			    function(){
 				if(request.isSyncEnabled==true){
-					storageArea='sync';
+					storageArea='chrome.storage.sync';
 					chrome.storage.local.get({redirects:[]}, function(obj) {
 					   chrome.storage.sync.set(obj, function(a) {
 						log('redirects moved from Local to Sync Storage Area');
@@ -234,7 +234,7 @@ chrome.runtime.onMessage.addListener(
 					});
 				} 
 				else{
-					storageArea='local';
+					storageArea='chrome.storage.local';
 					chrome.storage.sync.get({redirects:[]}, function(obj) {
 					   chrome.storage.local.set(obj, function(a) {
 						log('redirects moved from Sync to Local Storage Area');
@@ -264,7 +264,7 @@ chrome.runtime.onMessage.addListener(
 //First time setup
 
 function updateLogging() {
-    chrome.storage.storageArea.get({logging:false}, function(obj) {
+    storageArea.get({logging:false}, function(obj) {
         log.enabled = obj.logging;
     });
 }
@@ -281,11 +281,10 @@ chrome.storage.local.get({isSyncEnabled:false},function(obj){
 //wrapped the below inside a function so that we can call this once we know the value of storageArea from above. 
 
 function setupInitial(){
-	// moved updateLogging and updateIcon to here as we need to wait for storageArea value (sync or local)
 	updateLogging();
 	updateIcon();
 
-chrome.storage.storageArea.get({disabled:false}, function(obj) {
+storageArea.get({disabled:false}, function(obj) {
 	if (!obj.disabled) {
 		setUpRedirectListener();
 	} else {
