@@ -271,10 +271,10 @@ function updateLogging() {
 
 chrome.storage.local.get({isSyncEnabled:false},function(obj){
 	if(obj.isSyncEnabled){
-		storageArea='sync';
+		storageArea='chrome.storage.sync';
 	}
 	else
-	{storageArea='local';}
+	{storageArea='chrome.storage.local';}
 	setupInitial();
 });
 
