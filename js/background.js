@@ -8,7 +8,7 @@ function log(msg) {
 }
 log.enabled = false;
 
-var storageArea='chrome.storage.local';
+var storageArea=chrome.storage.local;
 //Redirects partitioned by request type, so we have to run through
 //the minimum number of redirects for each request.
 var partitionedRedirects = {};
@@ -221,7 +221,7 @@ chrome.runtime.onMessage.addListener(
 			chrome.storage.local.set({isSyncEnabled: request.isSyncEnabled},
 			    function(){
 				if(request.isSyncEnabled==true){
-					storageArea='chrome.storage.sync';
+					storageArea=chrome.storage.sync;
 					chrome.storage.local.get({redirects:[]}, function(obj) {
 					   chrome.storage.sync.set(obj, function(a) {
 						log('redirects moved from Local to Sync Storage Area');
@@ -234,7 +234,7 @@ chrome.runtime.onMessage.addListener(
 					});
 				} 
 				else{
-					storageArea='chrome.storage.local';
+					storageArea=chrome.storage.local;
 					chrome.storage.sync.get({redirects:[]}, function(obj) {
 					   chrome.storage.local.set(obj, function(a) {
 						log('redirects moved from Sync to Local Storage Area');
@@ -271,10 +271,10 @@ function updateLogging() {
 
 chrome.storage.local.get({isSyncEnabled:false},function(obj){
 	if(obj.isSyncEnabled){
-		storageArea='chrome.storage.sync';
+		storageArea=chrome.storage.sync;
 	}
 	else
-	{storageArea='chrome.storage.local';}
+	{storageArea=chrome.storage.local;}
 	setupInitial();
 });
 
