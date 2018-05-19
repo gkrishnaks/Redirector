@@ -7,6 +7,7 @@ function log(msg) {
 	}
 }
 log.enabled = false;
+var enableNotifications=false;
 
 var storageArea = chrome.storage.local;
 //Redirects partitioned by request type, so we have to run through
@@ -91,8 +92,10 @@ function checkRedirects(details) {
 			}
 
 
-			log('Redirecting ' + details.url + ' ===> ' + result.redirectTo + ', type: ' + details.type + ', pattern: ' + r.includePattern);
-
+			log('Redirecting ' + details.url + ' ===> ' + result.redirectTo + ', type: ' + details.type + ', pattern: ' + r.includePattern + ' which is in Rule : ' + r.description);
+			if(enableNotifications){
+				sendNotifications(r, details.url, result.redirectTo);
+			}
 			ignoreNextRequest[result.redirectTo] = new Date().getTime();
 			
 			return { redirectUrl: result.redirectTo };
@@ -126,7 +129,11 @@ function monitorChanges(changes, namespace) {
     if (changes.logging) {
         log('Logging settings have changed, updating...');
         updateLogging();
-    }
+	}
+	if (changes.enableNotifications){
+		log('notifications setting changed');
+		enableNotifications=changes.enableNotifications.newValue;
+	}
 }
 chrome.storage.onChanged.addListener(monitorChanges);
 
@@ -354,4 +361,30 @@ function setupInitial() {
 	});
 }
 log('Redirector starting up...');
-       
+	
+// Below is a feature request by an user who wished to see visual indication for an Redirect rule being applied on URL 
+// https://github.com/einaregilsson/Redirector/issues/72
+// By default, we will have it as false. If user wishes to enable it from settings page, we can make it true until user disables it (or browser is restarted)
+
+// Upon browser startup, just set enableNotifications to false.
+// Listen to a message from Settings page to change this to true.
+
+function sendNotifications(redirect, originalUrl, redirectedUrl ){
+	var message = "Applied rule : " + redirect.description + " and redirected original page " + originalUrl + " to " + redirectedUrl;
+
+	chrome.notifications.create({
+        "type": "basic",
+        "title": "Redirector",
+		"message": message,
+		"iconUrl": "images/icon-active-38.png"
+      });
+
+}
+
+chrome.runtime.onStartup.addListener(handleStartup);
+function handleStartup(){
+	enableNotifications=false;
+	chrome.storage.local.set({
+		enableNotifications: false
+	});
+}
