@@ -134,6 +134,10 @@ function monitorChanges(changes, namespace) {
 		log('notifications setting changed');
 		enableNotifications=changes.enableNotifications.newValue;
 	}
+	if (changes.enablePostRedirects){
+		enablePostRedirects = changes.enablePostRedirects.newValue;
+		log('Post redirect setting changed to.. ' + enablePostRedirects);
+	}
 }
 chrome.storage.onChanged.addListener(monitorChanges);
 
@@ -401,6 +405,11 @@ function sendNotifications(redirect, originalUrl, redirectedUrl ){
 		});
 	}
 }
+var enablePostRedirects = false;
+chrome.storage.local.get({enablePostRedirects: false},
+	function(obj){
+	enablePostRedirects = obj.enablePostRedirects;	
+});
 
 chrome.runtime.onStartup.addListener(handleStartup);
 function handleStartup(){
